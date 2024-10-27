@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.10.8",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-use-websocket": "^4.10.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",

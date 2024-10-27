@@ -18,28 +18,35 @@ interface Equities {
 interface OptionChainLTP {
   cash: { close: number | string };
   futures: Record<string, { close: number }>;
-  options: Record<string, unknown>;
   vix: { close: number | string };
 }
 
 interface SelectedEquityData {
   FUT?: Record<string, unknown>;
-  OPT?: Record<string, unknown>;
 }
 
-export default function Contracts() {
+interface ContractsProps {
+  setLtpOptions: any;
+  setEquityOptions: any;
+  selectedEquity: string;
+  setSelectedEquity: (equity: string) => void;
+}
+
+export default function Contracts({
+  setLtpOptions,
+  setEquityOptions,
+  selectedEquity,
+  setSelectedEquity,
+}: ContractsProps) {
   const [contracts, setContracts] = useState<ContractsData>({});
-  const [selectedEquity, setSelectedEquity] = useState<string>("");
   const [selectedEquityData, setSelectedEquityData] =
     useState<SelectedEquityData>({
       FUT: {},
-      OPT: {},
     });
   const [optionChainLTP, setOptionChainLTP] = useState<OptionChainLTP>({
     cash: { close: "---" },
     vix: { close: "---" },
     futures: {},
-    options: {},
   });
   const [equities, setEquities] = useState<Equities>({
     indices: [],
@@ -48,12 +55,11 @@ export default function Contracts() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const result: ContractsData = await fetchApi("/api/contracts");
-      console.log("Contract data is ", result);
+      const result = await fetchApi("/api/contracts");
       setContracts(result);
 
       const tempEquities = Object.keys(result);
-      setSelectedEquity(tempEquities[0] || ""); // Add a fallback for safety
+      setSelectedEquity(tempEquities[0] || "");
       const indices = tempEquities.filter((key) => !key.startsWith("NSE_"));
       const stocks = tempEquities.filter((key) => key.startsWith("NSE_"));
 
@@ -68,18 +74,17 @@ export default function Contracts() {
       if (contracts[selectedEquity]) {
         setSelectedEquityData({
           FUT: contracts[selectedEquity].FUT,
-          OPT: contracts[selectedEquity].OPT,
         });
-        const result: OptionChainLTP = await fetchApi(
+        setEquityOptions(contracts[selectedEquity].OPT);
+        const result = await fetchApi(
           `/api/option-chain-with-ltp?underlying=${selectedEquity}`
         );
-        console.log("Option chain result is ", result);
         setOptionChainLTP({
           cash: result.cash,
           vix: result.vix,
           futures: result.futures,
-          options: result.options,
         });
+        setLtpOptions(result.options);
       }
     };
 
