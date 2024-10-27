@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import Expiry from "./Expiry";
 import OptionTable from "./OptionTable";
+import useWebSocket, { ReadyState } from "react-use-websocket";
+
+const socketUrl = "wss://prices.algotest.xyz/mock/updates";
 
 interface OptionChainProps {
   selectedEquity: string;
@@ -13,6 +16,17 @@ export default function OptionChain({
   ltpOptions,
   equityOptions,
 }: OptionChainProps) {
+  const { sendJsonMessage, lastJsonMessage, readyState } =
+    useWebSocket(socketUrl);
+
+  const connectionStatus = {
+    [ReadyState.CONNECTING]: "Connecting",
+    [ReadyState.OPEN]: "Open",
+    [ReadyState.CLOSING]: "Closing",
+    [ReadyState.CLOSED]: "Closed",
+    [ReadyState.UNINSTANTIATED]: "Uninstantiated",
+  }[readyState];
+
   const expiries = useMemo(
     () => Object.keys(equityOptions).sort(),
     [equityOptions]
@@ -77,6 +91,30 @@ export default function OptionChain({
 
     return mergedData;
   }, [selectedExpiry, selectedEquity, equityOptions, ltpOptions]);
+
+  useEffect(() => {
+    const handleSendMessage = (expiry: string, equity: string) => {
+      const message = {
+        msg: {
+          datatypes: ["ltp"],
+          underlyings: [
+            {
+              underlying: equity,
+              cash: true,
+              options: [expiry],
+            },
+          ],
+        },
+      };
+      sendJsonMessage(message);
+    };
+
+    if (selectedExpiry && selectedEquity) {
+      handleSendMessage(selectedExpiry, selectedEquity);
+    }
+  }, [selectedExpiry, selectedEquity]);
+
+  console.log("Last json message is ", lastJsonMessage);
 
   return (
     <>
