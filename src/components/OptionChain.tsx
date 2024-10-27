@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Expiry from "./Expiry";
 import OptionTable from "./OptionTable";
-import useWebSocket, { ReadyState } from "react-use-websocket";
+import useWebSocket from "react-use-websocket";
 
 const socketUrl = "wss://prices.algotest.xyz/mock/updates";
 
@@ -16,16 +16,15 @@ export default function OptionChain({
   ltpOptions,
   equityOptions,
 }: OptionChainProps) {
-  const { sendJsonMessage, lastJsonMessage, readyState } =
-    useWebSocket(socketUrl);
+  const { sendJsonMessage, lastJsonMessage } = useWebSocket(socketUrl);
 
-  const connectionStatus = {
-    [ReadyState.CONNECTING]: "Connecting",
-    [ReadyState.OPEN]: "Open",
-    [ReadyState.CLOSING]: "Closing",
-    [ReadyState.CLOSED]: "Closed",
-    [ReadyState.UNINSTANTIATED]: "Uninstantiated",
-  }[readyState];
+  // const connectionStatus = {
+  //   [ReadyState.CONNECTING]: "Connecting",
+  //   [ReadyState.OPEN]: "Open",
+  //   [ReadyState.CLOSING]: "Closing",
+  //   [ReadyState.CLOSED]: "Closed",
+  //   [ReadyState.UNINSTANTIATED]: "Uninstantiated",
+  // }[readyState];
 
   const expiries = useMemo(
     () => Object.keys(equityOptions).sort(),
@@ -65,7 +64,7 @@ export default function OptionChain({
 
     // Use a Set to track unique strikes and filter duplicates in equityData
     const uniqueStrikes = new Set<number>();
-    const filteredEquityData = equityData.filter((equityItem) => {
+    const filteredEquityData = equityData.filter((equityItem: any) => {
       if (!uniqueStrikes.has(equityItem.strike)) {
         uniqueStrikes.add(equityItem.strike);
         return true;
@@ -74,7 +73,7 @@ export default function OptionChain({
     });
 
     // Merge equityData with LTP data using the Map
-    const mergedData = filteredEquityData.map((equityItem) => {
+    const mergedData = filteredEquityData.map((equityItem: any) => {
       const ltpInfo = ltpDataMap.get(equityItem.strike) || {};
       return {
         token: equityItem.token,
@@ -87,7 +86,7 @@ export default function OptionChain({
     });
 
     // Sort the merged data by strike in ascending order
-    mergedData.sort((a, b) => a.strike - b.strike);
+    mergedData.sort((a: any, b: any) => a.strike - b.strike);
 
     return mergedData;
   }, [selectedExpiry, selectedEquity, equityOptions, ltpOptions]);
